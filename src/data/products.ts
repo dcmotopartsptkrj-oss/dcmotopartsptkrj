@@ -56,11 +56,11 @@ export const defaultProducts: Product[] = [
     status: "available",
     badge: "Tersedia",
     sku: "YM-2024-08X",
-    image: "/src/assets/images/oli_yamalube_matic_1780484749609.png",
+    image: "/products/oli_yamalube_matic_1780484749609.png",
     summary:
       "Pelumas Yamalube Matic berkualitas premium untuk akselerasi ekstra halus dan perlindungan mesin tangguh.",
     description:
-      "Yamalube Matic direkayasa khusus untuk memenuhi standar spesifikasi sepeda motor matic modern Yamaha dan lainnya. Memiliki formula yang sangat stabil terhadap temperatur tinggi, mengoptimalkan konsumsi BBM, serta bebas dari slip kopling kering.",
+      "Yamalube Matic direkayasa khusus untuk memenuhi standar spesifikasi sepeda motor matic modern Yamaha and lainnya. Memiliki formula yang sangat stabil terhadap temperatur tinggi, mengoptimalkan konsumsi BBM, serta bebas dari slip kopling kering.",
     specs: {
       "Base Oil": "Semi-Synthetic",
       "API Service": "SJ",
@@ -79,7 +79,7 @@ export const defaultProducts: Product[] = [
     status: "available",
     badge: "Tersedia",
     sku: "VB-HB-2024",
-    image: "/src/assets/images/v_belt_honda_beat_1780484763972.png",
+    image: "/products/v_belt_honda_beat_1780484763972.png",
     summary:
       "Paket V-Belt dan roller CVT original Honda Genuine Parts untuk transmisi halus dan bertenaga.",
     description:
@@ -102,7 +102,7 @@ export const defaultProducts: Product[] = [
     status: "available",
     badge: "Tersedia",
     sku: "SP-NGK-C7HSA",
-    image: "/src/assets/images/busi_ngk_spark_1780484779013.png",
+    image: "/products/busi_ngk_spark_1780484779013.png",
     summary:
       "Busi NGK orisinal Jepang berkualitas tinggi untuk pengapian stabil dan pembakaran efisien.",
     description:
@@ -125,7 +125,7 @@ export const defaultProducts: Product[] = [
     status: "available",
     badge: "Tersedia",
     sku: "TR-IRC-14",
-    image: "/src/assets/images/ban_dalam_irc_1780484791842.png",
+    image: "/products/ban_dalam_irc_1780484791842.png",
     summary: "Ban dalam kualitas premium dari IRC untuk durabilitas tinggi dan tekanan ban stabil.",
     description:
       "Ban dalam motor IRC dibuat dari formulasi karet murni berkualitas tinggi (premium rubber) yang elastis dan tangguh terhadap tusukan objek tajam, menjaga kestabilan tekanan angin ban dalam perjalanan sehari-hari.",
@@ -193,7 +193,7 @@ export const defaultProducts: Product[] = [
     status: "available",
     badge: "Tersedia",
     sku: "BT-GS-12V",
-    image: "https://picsum.photos/seed/b-gs-12v/600/600",
+    image: "",
     summary:
       "Aki kering berkualitas tinggi dan bebas perawatan untuk suplai listrik ekstra stabil dan awet.",
     description:

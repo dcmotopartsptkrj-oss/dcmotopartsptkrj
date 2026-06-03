@@ -22,7 +22,9 @@ export default function ProductDetail() {
   const [localProducts] = useLocalStorage<Product[]>("dc_products", defaultProducts);
   const [localStore] = useLocalStorage<Store>("dc_store", defaultStore);
 
-  const [products, setProducts] = useState<Product[]>(localProducts);
+  const [products, setProducts] = useState<Product[]>(() =>
+    localProducts.map(p => ({ ...p, image: p.image_url || p.image || "", image_url: p.image_url || p.image || "" }))
+  );
   const [store, setStore] = useState<Store>(localStore);
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +36,10 @@ export default function ProductDetail() {
       
       // Default offline fallback
       const fallbackProd = localProducts.find((p) => p.slug === slug) || null;
+      if (fallbackProd) {
+        fallbackProd.image = fallbackProd.image_url || fallbackProd.image || "";
+        fallbackProd.image_url = fallbackProd.image_url || fallbackProd.image || "";
+      }
       setProduct(fallbackProd);
 
       if (isSupabaseConfigured && slug) {

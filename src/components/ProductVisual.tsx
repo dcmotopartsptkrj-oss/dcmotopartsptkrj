@@ -9,11 +9,27 @@ interface ProductVisualProps {
 export default function ProductVisual({ src, alt, className = "" }: ProductVisualProps) {
   const [failed, setFailed] = useState(false);
 
+  // Filter out unwanted types of images (AI/Unsplash/Picsum/random placeholders)
+  const isInvalidUrl = (url?: string): boolean => {
+    if (!url) return true;
+    const lower = url.toLowerCase();
+    return (
+      lower.includes("unsplash.com") ||
+      lower.includes("picsum.photos") ||
+      lower.includes("placeholder") ||
+      lower.includes("placehold.co") ||
+      lower.includes("ai-image") ||
+      lower.includes("tmp_")
+    );
+  };
+
+  const hasValidImage = !failed && src && !isInvalidUrl(src);
+
   return (
     <div
       className={`relative flex h-full min-h-[220px] items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-zinc-100 to-zinc-300 ${className}`}
     >
-      {!failed && src ? (
+      {hasValidImage ? (
         <img
           src={src}
           alt={alt}

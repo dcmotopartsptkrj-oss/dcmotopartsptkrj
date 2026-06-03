@@ -10,6 +10,7 @@ export interface Product {
   badge: string;
   sku: string;
   image: string;
+  image_url?: string;
   imagePath?: string;
   summary: string;
   description: string;

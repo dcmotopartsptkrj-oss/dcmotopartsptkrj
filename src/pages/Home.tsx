@@ -47,7 +47,9 @@ export default function Home() {
   const [localProducts] = useLocalStorage<Product[]>("dc_products", defaultProducts);
   const [localStore] = useLocalStorage<Store>("dc_store", defaultStore);
 
-  const [products, setProducts] = useState<Product[]>(localProducts);
+  const [products, setProducts] = useState<Product[]>(() =>
+    localProducts.map(p => ({ ...p, image: p.image_url || p.image || "", image_url: p.image_url || p.image || "" }))
+  );
   const [store, setStore] = useState<Store>(localStore);
 
   useEffect(() => {
