@@ -1,0 +1,68 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Montserrat", sans-serif;
+  --color-night: #080808;
+  --color-carbon: #0d0d0e;
+  --color-panel: #171514;
+  --color-panel-soft: #201d1b;
+  --color-line: #332c29;
+  --color-muted: #a7a0a0;
+  --color-peach: #ffb3aa;
+  --color-ember: #ff4b1f;
+  --color-ember-dark: #dc1f25;
+  --color-danger: #ef4444;
+  --color-success: #a7f3d0;
+  
+  --shadow-glow: 0 0 0 1px rgba(255,75,31,.18), 0 20px 60px rgba(0,0,0,.45);
+  --shadow-card: 0 18px 45px rgba(0,0,0,.35);
+  
+  --background-image-hero-radial: radial-gradient(circle at 75% 10%, rgba(255,75,31,.14), transparent 28%), linear-gradient(135deg, #111111 0%, #090909 55%, #17100f 100%);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-night font-sans text-zinc-100 antialiased;
+  }
+
+  ::selection {
+    @apply bg-ember text-white;
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+@utility panel {
+  @apply rounded-2xl border border-line bg-panel shadow-card;
+}
+
+@utility input-field {
+  @apply w-full rounded-xl border border-line bg-white/95 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/20;
+}
+
+@utility input-dark {
+  @apply w-full rounded-xl border border-line bg-panel-soft px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-ember focus:ring-2 focus:ring-ember/20;
+}
+
+@utility admin-input {
+  @apply w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/20;
+}
+
+@utility badge {
+  @apply inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest;
+}
+
+@utility link-hover {
+  @apply transition hover:text-peach;
+}
