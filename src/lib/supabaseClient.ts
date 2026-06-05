@@ -361,17 +361,25 @@ export async function signInAdmin(email: string, password: string): Promise<any>
     throw new Error(`Login gagal: ${error.message}`);
   }
 
-  const { data: profile, error: profileError } = await client
+  // 1. Check profiles role
+  const { data: profile } = await client
     .from("profiles")
     .select("id, full_name, role")
     .eq("id", data.user.id)
     .single();
 
-  if (profileError) {
-    throw new Error(`Gagal membaca profil admin: ${profileError.message}`);
-  }
+  // 2. Check admin_allowed_emails table
+  const { data: allowedEmail } = await client
+    .from("admin_allowed_emails")
+    .select("id, email, active")
+    .eq("email", email)
+    .eq("active", true)
+    .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  const isProfileAdmin = profile && profile.role === "admin";
+  const isAllowedEmail = !!allowedEmail;
+
+  if (!isProfileAdmin && !isAllowedEmail) {
     await client.auth.signOut();
     throw new Error("Akun ini belum memiliki akses admin.");
   }
@@ -379,7 +387,7 @@ export async function signInAdmin(email: string, password: string): Promise<any>
   return {
     session: data.session,
     user: data.user,
-    profile,
+    profile: profile || { full_name: email, role: isAllowedEmail ? "admin" : "member" },
   };
 }
 
@@ -397,19 +405,120 @@ export async function getCurrentAdmin(): Promise<any | null> {
     return null;
   }
 
-  const { data: profile, error } = await client
+  const { data: profile } = await client
     .from("profiles")
     .select("id, full_name, role")
     .eq("id", data.session.user.id)
     .single();
 
-  if (error || profile?.role !== "admin") {
+  const { data: allowedEmail } = await client
+    .from("admin_allowed_emails")
+    .select("id")
+    .eq("email", data.session.user.email)
+    .eq("active", true)
+    .maybeSingle();
+
+  const isProfileAdmin = profile && profile.role === "admin";
+  const isAllowedEmail = !!allowedEmail;
+
+  if (!isProfileAdmin && !isAllowedEmail) {
     return null;
   }
 
   return {
     user: data.session.user,
-    profile,
+    profile: profile || { full_name: data.session.user.email, role: isAllowedEmail ? "admin" : "member" },
     session: data.session,
   };
+}
+
+// Category Management CRUD
+export async function saveCategoryToSupabase(category: any): Promise<any> {
+  const client = ensureSupabase();
+  const payload = {
+    slug: category.slug,
+    name: category.name,
+    label: category.label || "",
+    icon: category.icon || "Oil",
+    sort_order: Number(category.sort_order || category.sortOrder || 0),
+  };
+
+  let query;
+  if (category.id && isUuid(category.id)) {
+    query = client.from("categories").update(payload).eq("id", category.id).select("*").single();
+  } else if (category.id && !isNaN(Number(category.id))) {
+    query = client.from("categories").update(payload).eq("id", Number(category.id)).select("*").single();
+  } else {
+    query = client.from("categories").upsert(payload, { onConflict: "slug" }).select("*").single();
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    throw new Error(`Gagal menyimpan kategori ke Supabase: ${error.message}`);
+  }
+  return data;
+}
+
+export async function deleteCategoryFromSupabase(idOrSlug: string): Promise<void> {
+  const client = ensureSupabase();
+  const query = isUuid(idOrSlug)
+    ? client.from("categories").delete().eq("id", idOrSlug)
+    : !isNaN(Number(idOrSlug))
+    ? client.from("categories").delete().eq("id", Number(idOrSlug))
+    : client.from("categories").delete().eq("slug", idOrSlug);
+
+  const { error } = await query;
+  if (error) {
+    throw new Error(`Gagal menghapus kategori dari Supabase: ${error.message}`);
+  }
+}
+
+// Activity logging helper
+export async function logAdminActivity(title: string, description: string, status?: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    const { error } = await supabase.from("activity_logs").insert({
+      title,
+      description,
+      status: status || "info",
+    });
+    if (error) {
+      console.warn("Gagal menulis entri activity_logs:", error.message);
+    }
+  } catch (err) {
+    console.warn("Kesalahan menulis activity_logs:", err);
+  }
+}
+
+// WhatsApp Clicks Tracking Function
+export async function recordWhatsAppClick(productSlug: string, sourcePage: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    // Attempt RPC public.record_whatsapp_click(product.slug, source_page)
+    const { error } = await supabase.rpc("record_whatsapp_click", {
+      product_slug: productSlug,
+      source_page: sourcePage,
+    });
+    
+    // If RPC fails (e.g. not defined), manually insert to the whatsapp_clicks table as requested
+    if (error) {
+      console.warn("RPC record_whatsapp_click failed, falling back to direct table insert:", error.message);
+      
+      const { data: prod } = await supabase
+        .from("products")
+        .select("id, name")
+        .eq("slug", productSlug)
+        .maybeSingle();
+
+      await supabase.from("whatsapp_clicks").insert({
+        product_id: prod?.id || null,
+        product_slug: productSlug,
+        product_name: prod?.name || productSlug,
+        phone: null,
+        source_page: sourcePage,
+      });
+    }
+  } catch (err) {
+    console.error("Critical error recording WhatsApp click:", err);
+  }
 }

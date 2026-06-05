@@ -44,22 +44,17 @@ const benefits = [
 ];
 
 export default function Home() {
-  const [localProducts] = useLocalStorage<Product[]>("dc_products", defaultProducts);
-  const [localStore] = useLocalStorage<Store>("dc_store", defaultStore);
-
-  const [products, setProducts] = useState<Product[]>(() =>
-    localProducts.map(p => ({ ...p, image: p.image_url || p.image || "", image_url: p.image_url || p.image || "" }))
-  );
-  const [store, setStore] = useState<Store>(localStore);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [store, setStore] = useState<Store>(defaultStore);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadHomeData() {
+      setIsLoading(true);
       if (isSupabaseConfigured) {
         try {
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) {
-            setProducts(dbProducts);
-          }
+          setProducts(dbProducts || []);
 
           const dbStore = await fetchStoreSettingsFromSupabase();
           if (dbStore) {
@@ -67,7 +62,14 @@ export default function Home() {
           }
         } catch (err) {
           console.warn("Gagal memuat data beranda dari Supabase:", err);
+        } finally {
+          setIsLoading(false);
         }
+      } else {
+        // Offline preview mode when Supabase is unconfigured
+        setProducts(defaultProducts);
+        setStore(defaultStore);
+        setIsLoading(false);
       }
     }
     loadHomeData();

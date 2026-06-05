@@ -1,82 +1,123 @@
 import React, { useState, useEffect } from "react";
-import { Check, Info, Save } from "lucide-react";
+import { Check, Info, Save, Loader2 } from "lucide-react";
 import Button from "../components/Button";
 import { defaultStore } from "../data/products";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 import { Store } from "../types";
 import {
   isSupabaseConfigured,
   fetchStoreSettingsFromSupabase,
-  saveStoreSettingsToSupabase
+  saveStoreSettingsToSupabase,
+  logAdminActivity
 } from "../lib/supabaseClient";
 
 export default function AdminSettings() {
-  const [store, setStore] = useLocalStorage<Store>("dc_store", defaultStore);
   const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Field states
-  const [name, setName] = useState(store.name);
-  const [whatsapp, setWhatsapp] = useState(store.whatsapp);
-  const [address, setAddress] = useState(store.address);
-  const [workDays, setWorkDays] = useState(store.workDays);
-  const [workHours, setWorkHours] = useState(store.workHours);
-  const [maps, setMaps] = useState(store.maps);
-  const [description, setDescription] = useState(store.description);
+  const [name, setName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [village, setVillage] = useState("");
+  const [regency, setRegency] = useState("");
+  const [province, setProvince] = useState("");
+  const [workDays, setWorkDays] = useState("");
+  const [workHours, setWorkHours] = useState("");
+  const [maps, setMaps] = useState("");
+  const [description, setDescription] = useState("");
 
   // Load from Supabase on mount
   useEffect(() => {
     async function loadSettings() {
+      setIsLoading(true);
       if (isSupabaseConfigured) {
         try {
           const dbStore = await fetchStoreSettingsFromSupabase();
           if (dbStore) {
-            setStore(dbStore);
-            setName(dbStore.name);
-            setWhatsapp(dbStore.whatsapp);
-            setAddress(dbStore.address);
-            setWorkDays(dbStore.workDays);
-            setWorkHours(dbStore.workHours);
+            setName(dbStore.name || "");
+            setWhatsapp(dbStore.whatsapp || "");
+            setPhone(dbStore.phone || "");
+            setAddress(dbStore.address || "");
+            setVillage(dbStore.village || "");
+            setRegency(dbStore.regency || "");
+            setProvince(dbStore.province || "");
+            setWorkDays(dbStore.workDays || "");
+            setWorkHours(dbStore.workHours || "");
             setMaps(dbStore.maps || "");
-            setDescription(dbStore.description);
+            setDescription(dbStore.description || "");
           }
         } catch (err) {
           console.warn("Gagal memuat pengaturan toko dari Supabase:", err);
+        } finally {
+          setIsLoading(false);
         }
+      } else {
+        // Fallback for offline mode
+        setName(defaultStore.name);
+        setWhatsapp(defaultStore.whatsapp);
+        setPhone(defaultStore.whatsapp); // fallback
+        setAddress(defaultStore.address);
+        setWorkDays(defaultStore.workDays);
+        setWorkHours(defaultStore.workHours);
+        setMaps(defaultStore.maps);
+        setDescription(defaultStore.description);
+        setIsLoading(false);
       }
     }
     loadSettings();
   }, []);
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSuccess(false);
+    setIsSaving(true);
 
-    // Form validation - strip non-digits for whatsapp
     const cleanWhatsapp = whatsapp.replace(/\D/g, "");
+    const cleanPhone = phone.replace(/\D/g, "");
 
-    const updatedStore: Store = {
+    const payload: any = {
       name: name.trim(),
       whatsapp: cleanWhatsapp,
+      phone: cleanPhone || cleanWhatsapp,
       address: address.trim(),
+      village: village.trim(),
+      regency: regency.trim(),
+      province: province.trim(),
       workDays: workDays.trim(),
       workHours: workHours.trim(),
       maps: maps.trim(),
       description: description.trim()
     };
 
-    setStore(updatedStore);
-    setSuccess(true);
-
-    if (isSupabaseConfigured) {
-      saveStoreSettingsToSupabase(updatedStore).catch((err) => {
-        console.warn("Gagal menyimpan ke database Supabase:", err);
-      });
+    try {
+      if (isSupabaseConfigured) {
+        await saveStoreSettingsToSupabase(payload);
+        await logAdminActivity(
+          "Ubah Pengaturan Toko",
+          `Memperbarui profil / alamat bengkel ke "${name.trim()}"`,
+          "warning"
+        );
+      }
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+      }, 4000);
+    } catch (err: any) {
+      alert(err.message || "Gagal menyimpan konfigurasi toko.");
+    } finally {
+      setIsSaving(false);
     }
+  }
 
-    // Auto dismiss success toast
-    setTimeout(() => {
-      setSuccess(false);
-    }, 4000);
+  if (isLoading) {
+    return (
+      <div className="p-12 flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="w-10 h-10 text-ember animate-spin" />
+        <p className="mt-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Memuat profil konfigurasi...</p>
+      </div>
+    );
   }
 
   return (
@@ -115,19 +156,43 @@ export default function AdminSettings() {
             {/* WA */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Nomor WhatsApp Admin (Prefiks Negara) *
+                Nomor WhatsApp Utama *
               </label>
               <input
                 type="text"
                 required
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="628123456789"
+                placeholder="62813..."
                 className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-3 text-sm text-zinc-100 outline-none focus:border-ember"
               />
-              <p className="mt-1 text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">
-                Gunakan nomor murni tanpa spasi/simbol (misal: 62812...).
-              </p>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                Nomor Telepon Kantor
+              </label>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="6221..."
+                className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-3 text-sm text-zinc-100 outline-none focus:border-ember"
+              />
+            </div>
+
+            {/* maps */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                Google Maps URL / Embed Link
+              </label>
+              <input
+                type="text"
+                value={maps}
+                onChange={(e) => setMaps(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-3 text-sm text-zinc-100 outline-none focus:border-ember"
+              />
             </div>
 
             {/* Work Days */}
@@ -161,17 +226,48 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {/* Map */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
-              Link Slocator Google Maps
-            </label>
-            <input
-              type="url"
-              value={maps}
-              onChange={(e) => setMaps(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-3 text-sm text-zinc-100 outline-none focus:border-ember"
-            />
+          <div className="grid gap-6 md:grid-cols-3 border-t border-line/50 pt-6">
+            {/* Village */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500">
+                Desa / Kelurahan
+              </label>
+              <input
+                type="text"
+                value={village}
+                onChange={(e) => setVillage(e.target.value)}
+                placeholder="Kelurahan..."
+                className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-2.5 text-xs text-zinc-100 outline-none focus:border-ember"
+              />
+            </div>
+
+            {/* Regency */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500">
+                Kabupaten / Kota
+              </label>
+              <input
+                type="text"
+                value={regency}
+                onChange={(e) => setRegency(e.target.value)}
+                placeholder="Kabupaten..."
+                className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-2.5 text-xs text-zinc-100 outline-none focus:border-ember"
+              />
+            </div>
+
+            {/* Province */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500">
+                Provinsi
+              </label>
+              <input
+                type="text"
+                value={province}
+                onChange={(e) => setProvince(e.target.value)}
+                placeholder="Provinsi..."
+                className="mt-2 w-full rounded-xl border border-line bg-panel-soft px-4 py-2.5 text-xs text-zinc-100 outline-none focus:border-ember"
+              />
+            </div>
           </div>
 
           {/* Address */}
@@ -210,9 +306,16 @@ export default function AdminSettings() {
           </div>
 
           <div className="pt-6 border-t border-line flex justify-end">
-            <Button type="submit" className="gap-2">
-              <Save size={16} />
-              Simpan Pengaturan
+            <Button type="submit" disabled={isSaving} className="gap-2">
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
+                </>
+              ) : (
+                <>
+                  <Save size={16} /> Simpan Pengaturan
+                </>
+              )}
             </Button>
           </div>
         </form>

@@ -55,26 +55,70 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
       console.error("Error fetching products for dashboard summary:", e);
     }
 
-    // 2. Fetch whatsapp click statistics
+    // 2. Fetch whatsapp click statistics (total count of entries from whatsapp_clicks)
     try {
-      const { data: waData, error: waErr } = await supabase
-        .from("whatsapp_stats")
-        .select("*")
-        .order("created_at", { ascending: true })
-        .limit(30);
+      const { count, error: countErr } = await supabase
+        .from("whatsapp_clicks")
+        .select("*", { count: "exact", head: true });
 
-      if (waErr) {
-        console.warn("Could not query 'whatsapp_stats' table for summary:", waErr.message);
-      } else if (waData) {
-        summary.whatsappChart = waData.map((row: any) => ({
-          day: row.day || row.date || (row.created_at ? new Date(row.created_at).toLocaleDateString() : "Day"),
-          orders: Number(row.orders ?? row.clicks ?? row.click_count ?? row.count ?? 0),
-        }));
-
-        // Calculate total whatsapp questions (sum of clicks/orders or number of logs)
-        const totalClicks = summary.whatsappChart.reduce((sum, item) => sum + item.orders, 0);
-        summary.whatsappQuestions = totalClicks > 0 ? totalClicks : waData.length;
+      if (countErr) {
+        console.warn("Could not count 'whatsapp_clicks' table for summary:", countErr.message);
+      } else {
+        summary.whatsappQuestions = count || 0;
       }
+
+      // Generate timeline for last 7 days (day-6 to today)
+      const chartData: { day: string; orders: number; dateStr: string }[] = [];
+      const daysOfWeek = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dayLabel = daysOfWeek[d.getDay()];
+        const dateFormatted = d.toLocaleDateString("id-ID", { day: "numeric", month: "numeric" });
+        
+        // Local YYYY-MM-DD to avoid timezone shifting issues
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const date = String(d.getDate()).padStart(2, "0");
+        const dateStr = `${year}-${month}-${date}`;
+
+        chartData.push({
+          day: `${dayLabel} (${dateFormatted})`,
+          orders: 0,
+          dateStr
+        });
+      }
+
+      // Query whatsapp_clicks from last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data: clicksData, error: clicksErr } = await supabase
+        .from("whatsapp_clicks")
+        .select("created_at")
+        .gte("created_at", sevenDaysAgo.toISOString());
+
+      if (clicksErr) {
+        console.warn("Could not query 'whatsapp_clicks' for chart:", clicksErr.message);
+      } else if (clicksData) {
+        clicksData.forEach((click: any) => {
+          if (click.created_at) {
+            const clickDate = new Date(click.created_at);
+            const y = clickDate.getFullYear();
+            const m = String(clickDate.getMonth() + 1).padStart(2, "0");
+            const d = String(clickDate.getDate()).padStart(2, "0");
+            const clickDateStr = `${y}-${m}-${d}`;
+            
+            const matchIndex = chartData.find((c) => c.dateStr === clickDateStr);
+            if (matchIndex) {
+              matchIndex.orders++;
+            }
+          }
+        });
+      }
+
+      summary.whatsappChart = chartData.map(({ day, orders }) => ({ day, orders }));
     } catch (e) {
       console.error("Error fetching whatsapp stats for dashboard summary:", e);
     }

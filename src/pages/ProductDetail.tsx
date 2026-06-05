@@ -7,52 +7,37 @@ import ProductVisual from "../components/ProductVisual";
 import SectionHeading from "../components/SectionHeading";
 import ProductCard from "../components/ProductCard";
 import { defaultProducts, defaultStore } from "../data/products";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 import { Product, Store } from "../types";
 import { formatPrice, getStatusLabel, getWhatsAppHref } from "../utils/format";
 import {
   isSupabaseConfigured,
   fetchProductBySlugFromSupabase,
   fetchProductsFromSupabase,
-  fetchStoreSettingsFromSupabase
+  fetchStoreSettingsFromSupabase,
+  recordWhatsAppClick
 } from "../lib/supabaseClient";
 
 export default function ProductDetail() {
   const { slug } = useParams();
-  const [localProducts] = useLocalStorage<Product[]>("dc_products", defaultProducts);
-  const [localStore] = useLocalStorage<Store>("dc_store", defaultStore);
 
-  const [products, setProducts] = useState<Product[]>(() =>
-    localProducts.map(p => ({ ...p, image: p.image_url || p.image || "", image_url: p.image_url || p.image || "" }))
-  );
-  const [store, setStore] = useState<Store>(localStore);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [store, setStore] = useState<Store>(defaultStore);
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load details and related resources
   useEffect(() => {
     async function initDetails() {
+      if (!slug) return;
       setIsLoading(true);
-      
-      // Default offline fallback
-      const fallbackProd = localProducts.find((p) => p.slug === slug) || null;
-      if (fallbackProd) {
-        fallbackProd.image = fallbackProd.image_url || fallbackProd.image || "";
-        fallbackProd.image_url = fallbackProd.image_url || fallbackProd.image || "";
-      }
-      setProduct(fallbackProd);
 
-      if (isSupabaseConfigured && slug) {
+      if (isSupabaseConfigured) {
         try {
           const dbProduct = await fetchProductBySlugFromSupabase(slug);
-          if (dbProduct) {
-            setProduct(dbProduct);
-          }
+          setProduct(dbProduct); // can be null if not found
 
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) {
-            setProducts(dbProducts);
-          }
+          setProducts(dbProducts || []);
 
           const dbStore = await fetchStoreSettingsFromSupabase();
           if (dbStore) {
@@ -64,6 +49,10 @@ export default function ProductDetail() {
           setIsLoading(false);
         }
       } else {
+        // Fallback offline only when Supabase is completely unconfigured
+        const fallbackProd = defaultProducts.find((p) => p.slug === slug) || null;
+        setProduct(fallbackProd);
+        setProducts(defaultProducts);
         setIsLoading(false);
       }
     }
@@ -84,6 +73,17 @@ export default function ProductDetail() {
     window.scrollTo(0, 0);
   }, [slug]);
 
+  const handleWhatsAppClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (!product) return;
+    try {
+      await recordWhatsAppClick(product.slug, "product_detail");
+    } catch (err) {
+      console.error("Gagal mencatat klik:", err);
+    }
+    window.open(getWhatsAppHref(store.whatsapp, product.name), "_blank", "noopener,noreferrer");
+  };
+
   if (isLoading && !product) {
     return (
       <div className="min-h-screen bg-night flex flex-col justify-between">
@@ -91,7 +91,7 @@ export default function ProductDetail() {
         <main className="container-page flex-grow flex items-center justify-center py-24">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-10 h-10 text-ember animate-spin" />
-            <p className="text-zinc-500 font-bold uppercase tracking-wider text-xs">Memuat Detail Produk...</p>
+            <p className="text-zinc-500 font-bold uppercase tracking-wider text-xs">Memuat Detail Suku Cadang...</p>
           </div>
         </main>
         <Footer />
@@ -203,9 +203,8 @@ export default function ProductDetail() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <a
                   href={getWhatsAppHref(store.whatsapp, product.name)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center gap-3 rounded-xl bg-peach px-6 py-4 text-xs font-black uppercase tracking-wider text-night hover:bg-white text-center transition"
+                  onClick={handleWhatsAppClick}
+                  className="flex items-center justify-center gap-3 rounded-xl bg-peach px-6 py-4 text-xs font-black uppercase tracking-wider text-night hover:bg-white text-center transition cursor-pointer"
                 >
                   <ShoppingBag size={18} />
                   Pesan via WhatsApp

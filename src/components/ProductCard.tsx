@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Product, Store } from "../types";
 import { formatPrice, getStatusLabel, getWhatsAppHref } from "../utils/format";
 import ProductVisual from "./ProductVisual";
+import { recordWhatsAppClick } from "../lib/supabaseClient";
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,17 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, store }: ProductCardProps): React.JSX.Element {
   const isSoldOut = product.status === "soldout";
+
+  const handleWhatsAppClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    try {
+      const sourcePage = window.location.pathname === "/" ? "home" : "catalog";
+      await recordWhatsAppClick(product.slug, sourcePage);
+    } catch (err) {
+      console.error("Gagal mencatat klik:", err);
+    }
+    window.open(getWhatsAppHref(store.whatsapp, product.name), "_blank", "noopener,noreferrer");
+  };
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-line bg-panel transition hover:-translate-y-1 hover:border-ember/50 hover:shadow-glow">
@@ -53,9 +65,8 @@ export default function ProductCard({ product, store }: ProductCardProps): React
           </Link>
           <a
             href={getWhatsAppHref(store.whatsapp, product.name)}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-peach px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-night transition hover:bg-white"
+            onClick={handleWhatsAppClick}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-peach px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-night transition hover:bg-white cursor-pointer"
           >
             <MessageSquare size={14} />
             WhatsApp

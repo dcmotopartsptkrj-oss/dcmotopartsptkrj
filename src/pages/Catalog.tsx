@@ -24,37 +24,28 @@ export default function Catalog() {
   const [keyword, setKeyword] = useState(initialSearch);
   const [sort, setSort] = useState("newest");
   
-  const [localProducts] = useLocalStorage<Product[]>("dc_products", defaultProducts);
-  const [localStore] = useLocalStorage<Store>("dc_store", defaultStore);
-
-  const [products, setProducts] = useState<Product[]>(() =>
-    localProducts.map(p => ({ ...p, image: p.image_url || p.image || "", image_url: p.image_url || p.image || "" }))
-  );
-  const [categoriesList, setCategoriesList] = useState<Category[]>(categories);
-  const [store, setStore] = useState<Store>(localStore);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
+  const [store, setStore] = useState<Store>(defaultStore);
   const [isLoading, setIsLoading] = useState(false);
 
   // Sync data from Supabase if configured
   useEffect(() => {
     async function loadData() {
+      setIsLoading(true);
       if (isSupabaseConfigured) {
-        setIsLoading(true);
         try {
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) {
-            setProducts(dbProducts);
-          }
+          setProducts(dbProducts || []);
 
           const dbCategories = await fetchCategoriesFromSupabase();
-          if (dbCategories && dbCategories.length > 0) {
-            const parsedCats: Category[] = dbCategories.map((item: any) => ({
-              id: item.slug || item.id,
-              name: item.name || item.label || "Kategori",
-              label: item.label || "",
-              icon: item.icon || "Oil"
-            }));
-            setCategoriesList(parsedCats);
-          }
+          const parsedCats: Category[] = (dbCategories || []).map((item: any) => ({
+            id: item.slug || item.id,
+            name: item.name || item.label || "Kategori",
+            label: item.label || "",
+            icon: item.icon || "Oil"
+          }));
+          setCategoriesList(parsedCats);
 
           const dbStore = await fetchStoreSettingsFromSupabase();
           if (dbStore) {
@@ -65,6 +56,12 @@ export default function Catalog() {
         } finally {
           setIsLoading(false);
         }
+      } else {
+        // Offline / dev fallback when Supabase is completely unconfigured
+        setProducts(defaultProducts);
+        setCategoriesList(categories);
+        setStore(defaultStore);
+        setIsLoading(false);
       }
     }
     loadData();
