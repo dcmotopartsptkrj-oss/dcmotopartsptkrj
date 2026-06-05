@@ -1,8 +1,6 @@
 import {
-  Heart,
   Menu,
   Search,
-  ShoppingCart,
   UserRound,
   X
 } from "lucide-react";
@@ -11,6 +9,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { defaultStore } from "../data/products";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { Store } from "../types";
+import { getWhatsAppHref } from "../utils/format";
 
 const navItems = [
   { label: "Beranda", path: "/" },
@@ -35,10 +34,12 @@ export default function Header() {
   }
 
   const parts = store.name.split(" ");
-  const firstWord = parts[0] || "DC";
+  const firstWord = (parts[0] || "DC").toUpperCase();
   let restOfWords = parts.slice(1).join(" ") || "MOTOPARTS";
-  if (restOfWords.toUpperCase() === "MOTOPART") {
+  if (restOfWords.toUpperCase() === "MOTOPART" || restOfWords.toUpperCase() === "MOTOPARTS") {
     restOfWords = "MOTOPARTS";
+  } else {
+    restOfWords = restOfWords.toUpperCase();
   }
 
   return (
@@ -54,19 +55,34 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.path}
-              className={({ isActive }) =>
-                `text-xs font-bold uppercase tracking-wider transition ${
-                  isActive ? "text-peach" : "text-zinc-400 hover:text-peach"
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            if (item.label === "Kontak") {
+              return (
+                <a
+                  key={item.label}
+                  href={getWhatsAppHref(store.whatsapp)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold uppercase tracking-wider transition text-zinc-400 hover:text-peach"
+                >
+                  {item.label}
+                </a>
+              );
+            }
+            return (
+              <NavLink
+                key={item.label}
+                to={item.path}
+                className={({ isActive }) =>
+                  `text-xs font-bold uppercase tracking-wider transition ${
+                    isActive ? "text-peach" : "text-zinc-400 hover:text-peach"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="hidden items-center gap-4 md:flex">
@@ -85,13 +101,6 @@ export default function Header() {
           <Link to="/admin/login" aria-label="Login admin">
             <UserRound className="text-zinc-200 transition hover:text-peach" size={20} />
           </Link>
-          <Heart className="text-zinc-200 cursor-pointer hover:text-peach" size={20} />
-          <div className="relative cursor-pointer hover:text-peach">
-            <ShoppingCart className="text-zinc-200" size={20} />
-            <span className="absolute -right-3 -top-3 flex h-5 w-5 items-center justify-center rounded-full bg-ember text-[10px] font-black text-white">
-              3
-            </span>
-          </div>
         </div>
 
         <button
@@ -119,17 +128,33 @@ export default function Header() {
               />
             </form>
 
-            <nav className="grid gap-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.path}
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl border border-line px-4 py-3 text-sm font-bold uppercase tracking-wider text-zinc-300 block"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <nav className="grid gap-2 text-center">
+              {navItems.map((item) => {
+                if (item.label === "Kontak") {
+                  return (
+                    <a
+                      key={item.label}
+                      href={getWhatsAppHref(store.whatsapp)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setOpen(false)}
+                      className="rounded-xl border border-line px-4 py-3 text-sm font-bold uppercase tracking-wider text-zinc-300 hover:text-peach block"
+                    >
+                      {item.label}
+                    </a>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.path}
+                    onClick={() => setOpen(false)}
+                    className="rounded-xl border border-line px-4 py-3 text-sm font-bold uppercase tracking-wider text-zinc-300 block"
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
               <Link
                 to="/admin/login"
                 onClick={() => setOpen(false)}

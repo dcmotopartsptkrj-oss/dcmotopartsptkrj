@@ -272,29 +272,6 @@ export const defaultProducts: Product[] = [
   }
 ];
 
-export const activityLogs: ActivityLog[] = [
-  {
-    title: 'Produk Baru: "Knalpot Akrapovic Ninja 250"',
-    description: "Ditambahkan oleh Admin 2 jam yang lalu",
-    status: "Berhasil"
-  },
-  {
-    title: 'Klik WhatsApp: "Shock Breaker KYB Z-Series"',
-    description: "Customer ID #8812 mengalihkan ke chat",
-    status: "15:30 WIB"
-  },
-  {
-    title: 'Peringatan Stok: "Busi NGK Standar"',
-    description: "Sisa stok tinggal 0 unit (Habis)",
-    status: "Penting"
-  }
-];
+export const activityLogs: ActivityLog[] = [];
 
-export const whatsappChart: ChartData[] = [
-  { day: "Sen", orders: 12 },
-  { day: "Sel", orders: 20 },
-  { day: "Rab", orders: 28 },
-  { day: "Kam", orders: 36 },
-  { day: "Jum", orders: 26 },
-  { day: "Sab", orders: 14 }
-];
+export const whatsappChart: ChartData[] = [];

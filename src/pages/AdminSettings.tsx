@@ -84,7 +84,7 @@ export default function AdminSettings() {
       <div>
         <h2 className="text-2xl font-black uppercase text-white">Konfigurasi Toko</h2>
         <p className="text-zinc-500 mt-1 text-sm font-medium">
-          Sunting kontak WhatsApp, alamat fisik, jam buka, and informasi deskripsi DC Motopart.
+          Sunting kontak WhatsApp, alamat fisik, jam buka, and informasi deskripsi DC MOTOPARTS.
         </p>
       </div>
 

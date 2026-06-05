@@ -1,4 +1,3 @@
-import { Mail, Share2, ThumbsUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { defaultStore } from "../data/products";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -45,13 +44,31 @@ export default function Footer() {
 
         <div>
           <h4 className="text-sm font-extrabold uppercase tracking-[.22em] text-zinc-100 font-sans">
-            Layanan
+            Google Maps
           </h4>
-          <div className="mt-5 grid gap-3 text-sm text-zinc-500">
-            <span className="cursor-pointer hover:text-peach">Kebijakan Privasi</span>
-            <span className="cursor-pointer hover:text-peach">Syarat & Ketentuan</span>
-            <span className="cursor-pointer hover:text-peach">Informasi Pengiriman</span>
-            <span className="cursor-pointer hover:text-peach">Garansi & Retur</span>
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="relative w-full h-32 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
+              <iframe
+                title="Google Maps Location"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent("DC MOTOPARTS, " + store.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                className="absolute inset-0 w-full h-full opacity-70 filter invert-[90%] hue-rotate-180 contrast-90 transition duration-300 group-hover:opacity-90"
+                style={{ border: 0 }}
+                allowFullScreen={false}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <a 
+              href="https://share.google/6uppTYIOKeBqJ6yJI" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-peach hover:text-ember transition duration-200"
+            >
+              Lihat Rute & Lokasi →
+            </a>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Kunjungi bengkel kami secara langsung untuk pemasangan & layanan terbaik.
+            </p>
           </div>
         </div>
 
@@ -64,17 +81,12 @@ export default function Footer() {
             <p>Hari Kerja: {store.workDays}</p>
             <p>Jam Operasional: {store.workHours}</p>
             <p>WhatsApp: +{store.whatsapp}</p>
-            <div className="flex gap-4 text-zinc-300 mt-2">
-              <Share2 size={18} className="cursor-pointer hover:text-peach" />
-              <ThumbsUp size={18} className="cursor-pointer hover:text-peach" />
-              <Mail size={18} className="cursor-pointer hover:text-peach" />
-            </div>
           </div>
         </div>
       </div>
 
       <div className="container-page flex flex-col justify-between gap-3 border-t border-line py-6 text-xs text-zinc-600 sm:flex-row">
-        <p>© 2026 DC Motoparts. High-Performance Engineering.</p>
+        <p>© 2026 DC Motoparts by Kelompok 8 BD-03-C</p>
         <p>v1.0 Built for Speed</p>
       </div>
     </footer>

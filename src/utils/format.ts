@@ -17,8 +17,8 @@ export function slugify(text: string): string {
 export function getWhatsAppHref(phone: string, productName = ""): string {
   const cleanPhone = String(phone || "").replace(/\D/g, "");
   const message = productName
-    ? `Halo DC Motopart, saya ingin pesan ${productName}. Apakah stok masih tersedia?`
-    : "Halo DC Motopart, saya ingin bertanya tentang produk.";
+    ? `Halo DC MOTOPARTS, saya ingin pesan ${productName}. Apakah stok masih tersedia?`
+    : "Halo DC MOTOPARTS, saya ingin bertanya tentang produk.";
 
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }

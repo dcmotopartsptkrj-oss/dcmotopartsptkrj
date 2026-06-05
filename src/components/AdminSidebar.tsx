@@ -1,10 +1,9 @@
-import { Grid2X2, LayoutDashboard, LogOut, Package, Settings } from "lucide-react";
+import { LayoutDashboard, LogOut, Package, Settings } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 const items = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Products", path: "/admin/products", icon: Package },
-  { label: "Categories", path: "/admin/products", icon: Grid2X2 },
+  { label: "Products and categories", path: "/admin/products", icon: Package },
   { label: "Settings", path: "/admin/settings", icon: Settings }
 ];
 
@@ -21,7 +20,7 @@ export default function AdminSidebar() {
       <div className="flex h-full flex-col p-6">
         <div>
           <h2 className="text-xl font-black italic tracking-[.25em] text-white">
-            DC MOTOPART
+            DC MOTOPARTS
           </h2>
           <p className="mt-2 text-sm text-zinc-500">Admin Panel</p>
         </div>

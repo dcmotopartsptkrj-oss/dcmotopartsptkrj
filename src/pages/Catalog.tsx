@@ -212,7 +212,7 @@ export default function Catalog() {
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <SectionHeading
-              eyebrow="Katalog DC Motopart"
+              eyebrow="Katalog DC MOTOPARTS"
               title={
                 category === "all" 
                   ? "Semua Suku Cadang" 

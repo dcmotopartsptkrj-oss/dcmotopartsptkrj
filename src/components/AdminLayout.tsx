@@ -1,4 +1,4 @@
-import { Menu, Search, X, LogOut, LayoutDashboard, Package, Grid2X2, Settings } from "lucide-react";
+import { Menu, Search, X, LogOut, LayoutDashboard, Package, Settings } from "lucide-react";
 import { useState } from "react";
 import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
@@ -14,8 +14,7 @@ export default function AdminLayout() {
 
   const items = [
     { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Products", path: "/admin/products", icon: Package },
-    { label: "Categories", path: "/admin/products", icon: Grid2X2 },
+    { label: "Products and categories", path: "/admin/products", icon: Package },
     { label: "Settings", path: "/admin/settings", icon: Settings }
   ];
 
@@ -30,7 +29,7 @@ export default function AdminLayout() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-black italic tracking-[.25em] text-white">
-                  DC MOTOPART
+                  DC MOTOPARTS
                 </h2>
                 <p className="mt-1 text-xs text-zinc-500">Admin Panel</p>
               </div>
@@ -88,7 +87,7 @@ export default function AdminLayout() {
                 <Menu size={20} />
               </button>
               <Link to="/" className="text-xl font-black uppercase tracking-[.18em] text-white">
-                DC Motopart
+                DC MOTOPARTS
               </Link>
             </div>
 

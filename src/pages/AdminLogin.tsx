@@ -59,7 +59,7 @@ export default function AdminLogin() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-4xl font-black italic tracking-widest text-[#ffb3aa]">
-          DC MOTOPART
+          DC MOTOPARTS
         </h1>
         <h2 className="mt-4 text-center text-sm font-bold uppercase tracking-[0.25em] text-zinc-500">
           Admin Portal Login
@@ -124,7 +124,7 @@ export default function AdminLogin() {
           </form>
 
           <div className="mt-8 pt-6 border-t border-line text-center text-xs text-zinc-600 font-medium">
-            <p>Akses terbatas hanya untuk administrator DC Motopart.</p>
+            <p>Akses terbatas hanya untuk administrator DC MOTOPARTS.</p>
             <p className="mt-2 text-zinc-500 text-[10px]">
               {isSupabaseConfigured 
                 ? "Gunakan kredensial akun admin yang telah didaftarkan di Supabase." 
