@@ -1,5 +1,6 @@
 import { LayoutDashboard, LogOut, Package, Settings } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { signOutAdmin } from "../services/authService";
 
 const items = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -10,7 +11,8 @@ const items = [
 export default function AdminSidebar() {
   const navigate = useNavigate();
 
-  function handleLogout() {
+  async function handleLogout() {
+    await signOutAdmin();
     sessionStorage.removeItem("dc_admin_auth");
     navigate("/admin/login");
   }

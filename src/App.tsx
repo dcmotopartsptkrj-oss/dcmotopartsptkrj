@@ -8,6 +8,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminSettings from "./pages/AdminSettings";
 import AdminLayout from "./components/AdminLayout";
+import { getCurrentAdmin } from "./services/authService";
 
 // Synchronous migrations to handle active dev/preview sessions with old localStorage values
 try {
@@ -94,8 +95,32 @@ interface ProtectedRouteProps {
 }
 
 function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const isLoggedIn = sessionStorage.getItem("dc_admin_auth") === "true";
-  return isLoggedIn ? <>{children}</> : <Navigate to="/admin/login" replace />;
+  const [checking, setChecking] = React.useState(true);
+  const [isAllowed, setIsAllowed] = React.useState(false);
+
+  React.useEffect(() => {
+    async function checkAdmin() {
+      const admin = await getCurrentAdmin();
+      setIsAllowed(Boolean(admin));
+      setChecking(false);
+    }
+
+    checkAdmin();
+  }, []);
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black text-[#ffb3aa] font-sans">
+        Memeriksa akses admin...
+      </div>
+    );
+  }
+
+  if (!isAllowed) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return <>{children}</>;
 }
 
 export default function App() {

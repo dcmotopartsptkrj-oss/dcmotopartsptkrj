@@ -1,138 +1,109 @@
-import { Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
-import { useState, FormEvent, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Button from "../components/Button";
-import { isSupabaseConfigured, signInAdmin } from "../lib/supabaseClient";
+import { Lock, Mail } from "lucide-react";
+import { signInAdmin } from "../services/authService";
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (sessionStorage.getItem("dc_admin_auth") === "true") {
-      navigate("/admin/dashboard", { replace: true });
-    }
-  }, [navigate]);
+  const [email, setEmail] = useState("dcmotopartsptkrj@gmail.com");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function handleLogin(event: FormEvent) {
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    setIsLoading(true);
 
-    if (isSupabaseConfigured) {
-      try {
-        await signInAdmin(email, password);
-        sessionStorage.setItem("dc_admin_auth", "true");
-        navigate("/admin/dashboard");
-      } catch (err: any) {
-        setError(err.message || "Email atau password yang Anda masukkan salah.");
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      // Offline fallback
-      if (email.trim() === "admin" && password.trim() === "admin123") {
-        sessionStorage.setItem("dc_admin_auth", "true");
-        navigate("/admin/dashboard");
-      } else {
-        setError("Username atau password yang Anda masukkan salah.");
-      }
-      setIsLoading(false);
+    try {
+      setLoading(true);
+      setErrorMessage("");
+
+      await signInAdmin(email, password);
+
+      navigate("/admin/dashboard");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Login gagal.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-night flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="absolute top-8 left-8">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-peach hover:text-white"
-        >
-          <ArrowLeft size={14} />
-          Kembali ke Situs
-        </Link>
-      </div>
+    <main className="min-h-screen bg-black text-white font-sans">
+      <Link
+        to="/"
+        className="absolute left-8 top-8 text-sm font-black uppercase tracking-widest text-[#ffb3aa]"
+      >
+        ← Kembali ke Situs
+      </Link>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-4xl font-black italic tracking-widest text-[#ffb3aa]">
-          DC MOTOPARTS
-        </h1>
-        <h2 className="mt-4 text-center text-sm font-bold uppercase tracking-[0.25em] text-zinc-500">
-          Admin Portal Login
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="panel p-8">
-          <form className="space-y-6" onSubmit={handleLogin}>
-            {error && (
-              <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-400 text-xs font-semibold">
-                <AlertCircle className="shrink-0" size={16} />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {isSupabaseConfigured && (
-              <div className="bg-emerald-500/5 px-4 py-2 border border-emerald-500/20 rounded-xl text-[10px] text-emerald-400 font-bold uppercase tracking-widest text-center">
-                ● Koneksi Supabase Berfungsi
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-widest text-zinc-400">
-                {isSupabaseConfigured ? "Email Admin" : "Username"}
-              </label>
-              <div className="relative mt-2">
-                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                <input
-                  type={isSupabaseConfigured ? "email" : "text"}
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={isSupabaseConfigured ? "admin@dcmotopart.com" : "Masukkan username"}
-                  className="w-full rounded-xl border border-line bg-panel-soft pl-11 pr-4 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-ember"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-widest text-zinc-400">
-                Password
-              </label>
-              <div className="relative mt-2">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Masukkan password"
-                  className="w-full rounded-xl border border-line bg-panel-soft pl-11 pr-4 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-ember"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <Button type="submit" disabled={isLoading} className="w-full py-4 text-xs font-black tracking-widest uppercase">
-                {isLoading ? "Menghubungkan..." : "Masuk ke Panel"}
-              </Button>
-            </div>
-          </form>
-
-          <div className="mt-8 pt-6 border-t border-line text-center text-xs text-zinc-600 font-medium">
-            <p>Akses terbatas hanya untuk administrator DC MOTOPARTS.</p>
-            <p className="mt-2 text-zinc-500 text-[10px]">
-              {isSupabaseConfigured 
-                ? "Gunakan kredensial akun admin yang telah didaftarkan di Supabase." 
-                : "Petunjuk: Gunakan username 'admin' and password 'admin123'"}
+      <section className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-lg">
+          <div className="mb-10 text-center">
+            <h1 className="text-4xl font-black italic tracking-[0.25em] text-[#ffb3aa]">
+              DC MOTOPARTS
+            </h1>
+            <p className="mt-4 text-sm font-black uppercase tracking-[0.4em] text-zinc-500">
+              Admin Portal Login
             </p>
           </div>
+
+          <form
+            onSubmit={handleLogin}
+            className="rounded-2xl border border-zinc-800 bg-[#151313] p-8 shadow-2xl"
+          >
+            {errorMessage && (
+              <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {errorMessage}
+              </div>
+            )}
+
+            <label className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400">
+              Email
+            </label>
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-zinc-700 bg-[#1f1c1b] px-4 py-4">
+              <Mail size={18} className="text-zinc-500" />
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="Masukkan email admin"
+                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-600 focus:ring-0"
+                required
+              />
+            </div>
+
+            <label className="mt-6 block text-xs font-black uppercase tracking-[0.3em] text-zinc-400">
+              Password
+            </label>
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-zinc-700 bg-[#1f1c1b] px-4 py-4">
+              <Lock size={18} className="text-zinc-500" />
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Masukkan password"
+                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-600 focus:ring-0"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-8 w-full rounded-xl bg-[#ff4b1f] px-5 py-4 text-sm font-black uppercase tracking-[0.2em] text-white transition hover:bg-[#dc1f25] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {loading ? "Memproses..." : "Masuk ke Panel"}
+            </button>
+
+            <div className="mt-8 border-t border-zinc-800 pt-6 text-center">
+              <p className="text-xs leading-6 text-zinc-500">
+                Akses terbatas hanya untuk email admin yang disetujui di database.
+              </p>
+            </div>
+          </form>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

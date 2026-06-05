@@ -2,12 +2,14 @@ import { Menu, Search, X, LogOut, LayoutDashboard, Package, Settings } from "luc
 import { useState } from "react";
 import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import { signOutAdmin } from "../services/authService";
 
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
 
-  function handleLogout() {
+  async function handleLogout() {
+    await signOutAdmin();
     sessionStorage.removeItem("dc_admin_auth");
     navigate("/admin/login");
   }
